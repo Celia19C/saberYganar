@@ -1,5 +1,5 @@
 function start() {
-'use strict';
+    'use strict';
 
     const questionsWithAnswers = [{
         id: 1,
@@ -53,207 +53,239 @@ function start() {
 
 
 
-const boxQuestions = document.querySelector('.questions');
-const btnSend      = document.querySelector('.btn');
-const btnNext      = document.querySelector('.btnNext');
-const btnStart     = document.querySelector('.btnStart');
-const btnSave      = document.querySelector('.btnSave');
-let msg            = document.querySelector('.message');
-let timer          = document.querySelector('.seconds');
-let nameBox        = document.querySelector('.nameBox');
-let scoreUI        = document.querySelector('.scoreUI');
-let totalPoints    = 0;
-let seconds        = 0;
-let i              = 0;
-let sumPoints;
-let listNames;
-let found;
-let optionChecked;
-let inSetInterval;
-btnSend.disabled   = true;
+    const boxQuestions = document.querySelector('.questions');
+    const btnSend = document.querySelector('.btn');
+    const btnNext = document.querySelector('.btnNext');
+    const btnStart = document.querySelector('.btnStart');
+    const btnSave = document.querySelector('.btnSave');
+    let answerResultMessage = document.querySelector('.message');
+    let timer = document.querySelector('.seconds');
+    let nameBox = document.querySelector('.nameBox');
+    let scoreUI = document.querySelector('.scoreUI');
+    let totalPoints = 0;
+    let seconds = 0;
+    let currentQuestionIndex = 0;
+    let inSetInterval;
+    btnSend.disabled = true;
 
 
 
-//INICIALIZA el juego y el tiempo
+    //INICIALIZA el juego y el tiempo
 
-btnStart.addEventListener('click',onStart);
-function onStart() {
-    btnStart.classList.toggle('invisible');
-    btnSend.classList.toggle('invisible');
-    boxQuestions.classList.remove('invisible');
-    i = 0;
-    paintQuestions();
-    inSetInterval = setInterval(startTimer, 1000) //El setInterval en una variable par luego utilizarla con el clearInterval
-}
+    btnStart.addEventListener('click', onStart);
+    function onStart() {
+        btnStart.classList.toggle('invisible');
+        btnSend.classList.toggle('invisible');
+        boxQuestions.classList.remove('invisible');
+        currentQuestionIndex = 0;
+        paintQuestions();
+        inSetInterval = setInterval(startTimer, 1000) //El setInterval en una variable par luego utilizarla con el clearInterval
+    }
 
 
-//SUCESIÓN DE PREGUNTAS
+    //SUCESIÓN DE PREGUNTAS
 
-function paintQuestions() {
-    if (i < questionsWithAnswers.length) {
+    function paintQuestions() {
+        if (currentQuestionIndex < questionsWithAnswers.length) {
+            paintCurrentQuestion(questionsWithAnswers[currentQuestionIndex]);
+            currentQuestionIndex++;
+            clearAnswerResultMessage();
+        } else {
+            showUserNameBox()
+            disableAnswerButton();
+            stopTimer();
+        }
+    }
+
+    function paintCurrentQuestion(question) {
         boxQuestions.innerHTML =
-        `<div class="questionBox" id="${questionsWithAnswers[i].id}">${questionsWithAnswers[i].question}</div>`;
-        for (let x = 0; x < questionsWithAnswers[i].answers.length; x++) {
+            `<div class="questionBox" id="${question.id}">${question.question}</div>`;
+        for (let x = 0; x < question.answers.length; x++) {
             boxQuestions.innerHTML +=
                 `<div class="checkboxBox">
-            <input type="radio" id="${questionsWithAnswers[i].answers[x].id}" name="options" class="answer" value="${questionsWithAnswers[i].answers[x].answer}"/>
-        <label for="${questionsWithAnswers[i].answers[x].id}">${questionsWithAnswers[i].answers[x].answer}</label>
-        </div>`;
+            <input type="radio" id="${question.answers[x].id}" name="options" class="answer" value="${question.answers[x].answer}"/>
+            <label for="${question.answers[x].id}">${question.answers[x].answer}</label>
+            </div>`;
         }
-        i++;
-    msg.innerHTML = '';
-    } else {
-        nameBox.classList.toggle('invisible');
-        btnSend.disabled = true; //Se desabilita cuando llega al final de las preguntas 
-        stopTimer()
     }
-}
-//Set interval con la función startTimer para que cada segundo compruebe que los segundos no han llegado a 20.
-//Si llega a 20 ejecuta la función de pintar las preguntas, es decir, pasa a la siguiente y resta 3 puntos.
 
-function startTimer() {
-    seconds++;
-    timer.innerHTML= `${seconds}`;
-    if (seconds == 20) {
-        seconds = 0;
-        paintQuestions();
-        totalPoints -=3
-        console.log(totalPoints)
+    function clearAnswerResultMessage() {
+        answerResultMessage.innerHTML = '';
+    }
+
+    function showUserNameBox() {
+        nameBox.classList.remove('invisible');
+
+    }
+    //Set interval con la función startTimer para que cada segundo compruebe que los segundos no han llegado a 20.
+    //Si llega a 20 ejecuta la función de pintar las preguntas, es decir, pasa a la siguiente y resta 3 puntos.
+
+    function startTimer() {
+        seconds++;
+        paintRealTime()
+        if (seconds == 20) {
+            seconds = 0;
+            paintQuestions();
+            pointsFinishTimer()
+            console.log(totalPoints)
+        }
+        timeDisabledButton();//Comprueba cada segundo si hay algún check seleccionado para habilitar el botón (cada segundo por el setInterval)
+    }
+
+    function paintRealTime() {
+        timer.innerHTML = `${seconds}`;
+    }
+
+    function pointsFinishTimer() {
+        totalPoints -=3;
         printScoreUIRealTime()
     }
-    enable();//Comprueba cada segundo si hay algún check seleccionado para habilitar el botón (cada segundo por el setInterval)
-}
 
-function enable(){
-    btnSend.disabled = true;
-    const arrayRadioAnswers = document.querySelectorAll('.answer');
-    for (let i = 0; i < arrayRadioAnswers.length; i++) {
-        if (arrayRadioAnswers[i].checked) {    
-            btnSend.disabled = false;
+    function printScoreUIRealTime() {
+        scoreUI.innerHTML = ` ${totalPoints} puntos`
+    }
+    function timeDisabledButton() {
+        enableAnswerButton();
+    }
+
+    function enableAnswerButton() {
+        disableAnswerButton()
+        const RadioAnswers = document.querySelectorAll('.answer');
+        for (let i = 0; i < RadioAnswers.length; i++) {
+            if (RadioAnswers[i].checked) {
+                btnSend.disabled = false;
+            }
         }
     }
-}
 
-//SELECCIONAR RESPUESTA Y PUNTOS
-
-btnSend.addEventListener('click', readUserAnswer);
-btnSend.addEventListener('click',paintQuestions);
-
-function readUserAnswer() {
-    const arrayRadioAnswers = document.querySelectorAll('.answer');
-
-    for (let i = 0; i < arrayRadioAnswers.length; i++) {
-        if (arrayRadioAnswers[i].checked) {
-            optionChecked = arrayRadioAnswers[i];
-        }
+    function disableAnswerButton() {
+        btnSend.disabled = true;
     }
-    found = questionsWithAnswers.find(function(question) {
-        const questionBox = document.querySelector('.questionBox');
-        if (question.id == questionBox.id){
-            return question
-        }
-    });
-    correctIncorrectAnswer(found, optionChecked)
-}
 
-function correctIncorrectAnswer(a, b){    
-    if (found.answers[optionChecked.id].isCorrect == true){
-        console.log('BIEN')
-        msg.innerHTML = `<h3> ¡Correcta! </h3>`;
-        if (seconds <= 2) {
-            totalPoints += 2;
+    
+    //SELECCIONAR RESPUESTA Y PUNTOS
+
+    btnSend.addEventListener('click', onSend);
+
+    function onSend() {
+        readUserAnswer();
+        paintQuestions();
+    }
+
+    function readUserAnswer(found, optionChecked) {
+        const RadioAnswers = document.querySelectorAll('.answer');
+
+        // optionChecked = RadioAnswers.filter(function (RadioAnswer) {
+        //     return RadioAnswer.checked; //Es como un for con un if. Recorre el array y devuelve/encuentra el PRIMER elemento que cumpla la condición. El for devolvería el último a menos que le pongas el break.
+        // })
+        for (let i = 0; i < RadioAnswers.length; i++) {
+            if (RadioAnswers[i].checked) {
+                optionChecked = RadioAnswers[i];
+                break;
+            }
         }
-        else if  (seconds >= 3 && seconds <= 10){
-            totalPoints += 1;
+        found = questionsWithAnswers.find(function (question) {
+            const questionBox = document.querySelector('.questionBox');
+            if (question.id == questionBox.id) {
+                return question
+            }
+        });
+        correctIncorrectAnswer(found, optionChecked)
+    }
+
+    function correctIncorrectAnswer(found, optionChecked) {
+        if (found.answers[optionChecked.id].isCorrect) {
+            console.log('BIEN')
+            answerResultMessage.innerHTML = `<h3> ¡Correcta! </h3>`;
+            if (seconds <= 2) {
+                totalPoints += 2;
+            }
+            else if (seconds >= 3 && seconds <= 10) {
+                totalPoints += 1;
+            }
+            else {
+                totalPoints;
+            }
         }
         else {
-            totalPoints;
+            console.log('MAL')
+            answerResultMessage.innerHTML = `<h3> ¡Incorrecta! </h3>`;
+            if (seconds >= 11) {
+                totalPoints -= 2;
+            }
+            else if (seconds <= 10) {
+                totalPoints -= 1;
+            }
         }
+        printScoreUIRealTime()
+        console.log(totalPoints)
+        seconds = 0;
     }
-    else if (found.answers[optionChecked.id].isCorrect !== true) {
-        console.log('MAL')
-        msg.innerHTML = `<h3> ¡Incorrecta! </h3>`;
-        if (seconds >= 11) {
-            totalPoints -= 2;
-        }
-        else if  (seconds <= 10){
-            totalPoints -= 1;
-        }
+
+
+    // MARCADOR 
+
+    btnSave.addEventListener('click', onSave);
+
+    function onSave() {
+        saveScoreAndName();
+        resetTimeAndPoints();
+        cleanButtonsAndBoxes();
     }
-    printScoreUIRealTime()
-    console.log(totalPoints)
-    seconds = 0;
-}
 
-
-function printScoreUIRealTime() {
-    scoreUI.innerHTML = ` ${totalPoints} puntos`
-}
-
-// MARCADOR 
-
-btnSave.addEventListener('click', onSave);
-
-function onSave () {
-    saveScoreAndName();
-    resetTimeAndPoints();
-    cleanButtonsAndBoxes();
-}
-
-let score = { //Se guardan los nombres y las puntuaciones de cada jugador
+    let score = { //Se guardan los nombres y las puntuaciones de cada jugador
         names:
-        [],
+            [],
         points:
-        []
-};
+            []
+    };
 
-function saveScoreAndName() {
-    let name = document.querySelector('#inputNameId').value;
-    score.names.push(name);;
-    listNames = score.names;
+    function saveScoreAndName() {
+        let name = document.querySelector('#inputNameId').value;
+        score.names.push(name);;
+        listNames = score.names;
         console.log(listNames);
-    score.points.push(totalPoints);
-    sumPoints = score.points;
+        score.points.push(totalPoints);
+        sumPoints = score.points;
         console.log(sumPoints);
-    printScoreAndName(listNames, sumPoints)
-}
-
-function printScoreAndName(a,b) {
-    let scoreList = document.querySelector('.list');
-    let add = '';
-    for (let i = 0;i < listNames.length; i++){
-        add +=
-        `<li class="eachBoxPlayer">
+        printScoreAndName(listNames, sumPoints)
+    }
+    
+    function printScoreAndName(listNames, sumPoints) {
+        let scoreList = document.querySelector('.list');
+        let add = '';
+        for (let i = 0; i < listNames.length; i++) {
+            add +=
+                `<li class="eachBoxPlayer">
             ${listNames[i]} - <div class="actualPoints"> ${sumPoints[i]} puntos </div>
         </li>`;
-    };
-    scoreList.innerHTML= add;
-}
+        };
+        scoreList.innerHTML = add;
+    }
 
 
 
-//RESETEA temporizador y puntos y lo deja preparado para iniciar el juego de nuevo
+    //RESETEA temporizador y puntos y lo deja preparado para iniciar el juego de nuevo
 
-function stopTimer(){
-    seconds = 0;
-    clearInterval(inSetInterval);
-}
+    function stopTimer() {
+        seconds = 0;
+        clearInterval(inSetInterval);
+    }
 
-function resetTimeAndPoints(){
-    totalPoints = 0;
-    printScoreUIRealTime()
-    stopTimer();
-    timer.innerHTML = '';
-}
+    function resetTimeAndPoints() {
+        totalPoints = 0;
+        printScoreUIRealTime()
+        stopTimer();
+        timer.innerHTML = '';
+    }
 
-function cleanButtonsAndBoxes(){
-    let name = document.querySelector('#inputNameId').value = '';
-    btnStart.classList.toggle('invisible');
-    btnSend.classList.toggle('invisible');
-    boxQuestions.classList.add('invisible');
-    nameBox.classList.add('invisible');
-    msg.innerHTML='';
-}
-
+    function cleanButtonsAndBoxes() {
+        let name = document.querySelector('#inputNameId').value = '';
+        btnStart.classList.toggle('invisible');
+        btnSend.classList.toggle('invisible');
+        boxQuestions.classList.add('invisible');
+        nameBox.classList.add('invisible');
+        answerResultMessage.innerHTML = '';
+    }
 
 }

@@ -7,14 +7,22 @@ body{
 	margin: 0;
 	font-family: sans-serif;
     min-height: 100vh;
+	background: url("img/fondo.jpg");
+	background-repeat: no-repeat;
+	background-size: cover;
 }
 .header {
     text-align: center;
+	width: 100%;
+	margin-top: 60px;
+	font-size: 20px;
 }
 .main {
-    text-align: center;
-    display: grid;
-    grid-template-columns: 1fr 1fr
+    display:flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+	font-size: 20px;
+	margin-top: 80px;
 
 }
 .btn,
@@ -55,4 +63,12 @@ body{
 .incorrects {
     text-align: left;
     margin-left:15%;
+}
+.game,
+.scores,
+.stadistics,
+.bonus {
+    margin:5px 150px 15px 150px;; 
+
+    
 }
