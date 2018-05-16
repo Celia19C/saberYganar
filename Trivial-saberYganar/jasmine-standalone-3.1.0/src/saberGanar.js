@@ -173,14 +173,15 @@ function start() {
     }
 
     function readUserAnswer(found, optionChecked) {
-        const RadioAnswers = document.querySelectorAll('.answer');
+        const radioAnswers = document.querySelectorAll('.answer'); //Es un nodeList. No es un array, es como un objeto array. Debes convertirlo en un array para aplicarle cualquiera de sus métodos funcionales. Un FOR normal sí que funciona con el nodeList.
 
-        // optionChecked = RadioAnswers.filter(function (RadioAnswer) {
-        //     return RadioAnswer.checked; //Es como un for con un if. Recorre el array y devuelve/encuentra el PRIMER elemento que cumpla la condición. El for devolvería el último a menos que le pongas el break.
+        // optionChecked = [].slice.call(radioAnswers).find(function (radioAnswer) {
+        //     return radioAnswer.checked;
+        //     console.log(optionChecked) //Es como un for con un if. Recorre el array creado y devuelve/encuentra el PRIMER elemento que cumpla la condición. El for devolvería el último a menos que le pongas el break.
         // })
-        for (let i = 0; i < RadioAnswers.length; i++) {
-            if (RadioAnswers[i].checked) {
-                optionChecked = RadioAnswers[i];
+        for (let i = 0; i < radioAnswers.length; i++) { 
+            if (radioAnswers[i].checked) {
+                optionChecked = radioAnswers[i];
                 break;
             }
         }
